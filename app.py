@@ -1,5 +1,6 @@
 # pip install openai streamlit python-dotenv
 import os
+import time
 import openai
 import streamlit as st
 from dotenv import load_dotenv
@@ -33,12 +34,22 @@ def generate_debate(topic, rounds):
         st.markdown(f"### 🔁 Round {i + 1}")
 
         pro = generate_argument("pro", topic, prev)
-        st.markdown(f"PRO: {pro}") 
+        type_writer(f"PRO: {pro}") 
         prev = pro
 
         con = generate_argument("con", topic, prev)
-        st.markdown(f"CON: {con}")  
+        type_writer(f"CON: {con}")  
         prev = con
+
+def type_writer(text, delay=0.05):
+    placeholder = st.empty()
+    full_text = ""
+    
+    for word in text.split():
+        full_text += word + " "
+        placeholder.markdown(full_text)
+        time.sleep(delay)
+    return full_text.strip()
 
 def main():
     # Get user input
