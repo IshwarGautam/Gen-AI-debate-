@@ -11,6 +11,10 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 st.set_page_config(page_title="AI Debate Bot", page_icon="🤖")
 
+# Load CSS Styling
+with open("styles.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 # Title and description
 st.title("🧠 AI Debate Bot")
 st.write("Enter a topic below and let two AI bots argue it out!")
@@ -34,20 +38,35 @@ def generate_debate(topic, rounds):
         st.markdown(f"### 🔁 Round {i + 1}")
 
         pro = generate_argument("pro", topic, prev)
-        type_writer(f"PRO: {pro}") 
+        type_writer(pro, role="pro") 
         prev = pro
 
         con = generate_argument("con", topic, prev)
-        type_writer(f"CON: {con}")  
+        type_writer(con, role="con")  
         prev = con
 
-def type_writer(text, delay=0.05):
+def type_writer(text, role, delay=0.05):
     placeholder = st.empty()
     full_text = ""
+
+    if role == 'pro':
+        background_color = '#e0ffe0' 
+        alignment = 'flex-start' 
+        avatar = "🟢🤖"
+    else:
+        background_color = '#ffe0e0' 
+        alignment = 'flex-end'
+        avatar = "🔴🦊"
+
+    chat_container = f'<div class="chat-row" style="display: flex; justify-content: {alignment};">'
+    chat_bubble = f'<div class="avatar">{avatar}</div><div class="chat-bubble" style="background-color:{background_color};">'
     
     for word in text.split():
         full_text += word + " "
-        placeholder.markdown(full_text)
+        placeholder.markdown(
+            f'{chat_container}{chat_bubble}{full_text}</div></div>',
+            unsafe_allow_html=True
+        )
         time.sleep(delay)
     return full_text.strip()
 
