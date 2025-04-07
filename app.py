@@ -90,6 +90,12 @@ def display_chat_history(chat_placeholder):
                             f'<div class="avatar">🔴🦊</div><div class="chat-bubble" style="background-color:#ffe0e0;">{text}</div></div>', 
                             unsafe_allow_html=True)
 
+def show_vote_options(vote_placeholder):
+    winner = vote_placeholder.radio("🏁 Who won the debate?", ["🟢 PRO", "🔴 CON"], index=None)
+    
+    if winner:
+        st.success(f"🎉 You voted: {winner}")
+
 def reset_debate_if_topic_changes(topic):
     if topic != st.session_state.get("last_topic", ""):
         st.session_state.debate_started = False
@@ -97,10 +103,6 @@ def reset_debate_if_topic_changes(topic):
         st.session_state.chat_history = []
         st.session_state.last_topic = topic
         st.session_state.ui_interacted = False
-
-def handle_ui_interaction(placeholder):
-    if placeholder and st.session_state.debate_started and not st.session_state.ui_interacted:
-        st.session_state.ui_interacted = True
 
 def main():
     initialize_session_state()
@@ -112,18 +114,20 @@ def main():
     # Reset debet
     reset_debate_if_topic_changes(topic)
 
-    # Handle UI interaction
-    handle_ui_interaction(rounds)
-
     if st.button("🗣️ Start Debate") and topic and not st.session_state.debate_started:
         st.session_state.debate_started = True
         generate_debate(topic, rounds)
 
     # UI interaction handling
     chat_placeholder = st.empty()
+    vote_placeholder = st.empty()
 
-    if st.session_state.ui_interacted:
-        display_chat_history(chat_placeholder)
+    if st.session_state.debate_started:
+        show_vote_options(vote_placeholder)
+
+        if st.session_state.ui_interacted:
+            display_chat_history(chat_placeholder)
+        st.session_state.ui_interacted = True
 
 if __name__ == "__main__":
     # streamlit run app.py
