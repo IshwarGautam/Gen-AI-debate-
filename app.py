@@ -96,6 +96,11 @@ def show_vote_options(vote_placeholder):
     if winner:
         st.success(f"🎉 You voted: {winner}")
 
+def show_download_button():
+    debate_text = "\n\n".join([f"PRO: {text}" if role == 'pro' else f"CON: {text}" 
+                                for role, text in st.session_state.chat_history])
+    st.download_button("📄 Download Debate (TXT)", debate_text, file_name="debate.txt")
+
 def reset_debate_if_topic_changes(topic):
     if topic != st.session_state.get("last_topic", ""):
         st.session_state.debate_started = False
@@ -128,6 +133,9 @@ def main():
         if st.session_state.ui_interacted:
             display_chat_history(chat_placeholder)
         st.session_state.ui_interacted = True
+
+        # Debate download button
+        show_download_button()
 
 if __name__ == "__main__":
     # streamlit run app.py
