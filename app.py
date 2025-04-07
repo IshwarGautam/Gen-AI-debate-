@@ -38,10 +38,12 @@ def generate_debate(topic, rounds):
         st.markdown(f"### 🔁 Round {i + 1}")
 
         pro = generate_argument("pro", topic, prev)
+        st.session_state.chat_history.append(("pro", pro))
         type_writer(pro, role="pro") 
         prev = pro
 
         con = generate_argument("con", topic, prev)
+        st.session_state.chat_history.append(("con", con))
         type_writer(con, role="con")  
         prev = con
 
@@ -70,13 +72,58 @@ def type_writer(text, role, delay=0.05):
         time.sleep(delay)
     return full_text.strip()
 
+def initialize_session_state():
+    st.session_state.setdefault("debate_history", [])
+    st.session_state.setdefault("debate_started", False)
+    st.session_state.setdefault("chat_history", [])
+    st.session_state.setdefault("ui_interacted", False)
+
+def display_chat_history(chat_placeholder):
+    with chat_placeholder.container():
+        for role, text in st.session_state.chat_history:
+            if role == 'pro':
+                st.markdown(f'<div class="chat-row" style="display: flex; justify-content: flex-start;">'
+                            f'<div class="avatar">🟢🤖</div><div class="chat-bubble" style="background-color:#e0ffe0;">{text}</div></div>', 
+                            unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="chat-row" style="display: flex; justify-content: flex-end;">'
+                            f'<div class="avatar">🔴🦊</div><div class="chat-bubble" style="background-color:#ffe0e0;">{text}</div></div>', 
+                            unsafe_allow_html=True)
+
+def reset_debate_if_topic_changes(topic):
+    if topic != st.session_state.get("last_topic", ""):
+        st.session_state.debate_started = False
+        st.session_state.debate_history = []
+        st.session_state.chat_history = []
+        st.session_state.last_topic = topic
+        st.session_state.ui_interacted = False
+
+def handle_ui_interaction(placeholder):
+    if placeholder and st.session_state.debate_started and not st.session_state.ui_interacted:
+        st.session_state.ui_interacted = True
+
 def main():
+    initialize_session_state()
+
     # Get user input
     topic = st.text_input("🎯 Debate Topic", "Gen AI is important topic for student.")
     rounds = st.slider("🌀 Number of Debate Rounds", 1, 5, 2)
 
-    if st.button("🗣️ Start Debate") and topic:
+    # Reset debet
+    reset_debate_if_topic_changes(topic)
+
+    # Handle UI interaction
+    handle_ui_interaction(rounds)
+
+    if st.button("🗣️ Start Debate") and topic and not st.session_state.debate_started:
+        st.session_state.debate_started = True
         generate_debate(topic, rounds)
+
+    # UI interaction handling
+    chat_placeholder = st.empty()
+
+    if st.session_state.ui_interacted:
+        display_chat_history(chat_placeholder)
 
 if __name__ == "__main__":
     # streamlit run app.py
